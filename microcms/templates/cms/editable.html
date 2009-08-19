@@ -1,0 +1,8 @@
+<{{ tag }} class="editable" id="{{ id }}">
+ {{ plugin.render|safe }}
+</{{tag}}>
+<script type="text/javascript">
+$(document).ready(function(){
+    $('#{{ id }}').editable('{{ plugin.save_url }}', {{ plugin.options|safe }});
+});
+</script>

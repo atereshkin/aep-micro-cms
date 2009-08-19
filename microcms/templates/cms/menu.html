@@ -1,0 +1,12 @@
+{% load cms_tags %}
+
+{% if pages %}
+<ul>
+  {% for page in pages %}
+  <li>
+    <a href="{{ page.get_absolute_url }}">{{ page.title }}</a>
+    {% menu template page %}
+  </li>
+  {% endfor %}
+</ul>
+{% endif %}
