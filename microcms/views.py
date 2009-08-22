@@ -18,3 +18,6 @@ def show_page(request, path):
                               page.template.name,
                               {'page' : page })
 
+
+
+                                  
