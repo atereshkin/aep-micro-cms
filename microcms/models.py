@@ -17,7 +17,7 @@ class Page(db.Expando):
     slug        = db.StringProperty()
     template    = db.ReferenceProperty(DbTemplate)
     parent_page = db.SelfReferenceProperty(default=None)
-
+    order       = db.FloatProperty(default=1000.0)
     
     def get_absolute_url(self):
         if self.parent_page:
@@ -26,6 +26,22 @@ class Page(db.Expando):
         else:
             return reverse('cms_page', args=[self.slug])
                        
+    
+    def next_sibling(self):
+        try:
+            return Page.all().filter("parent_page =", self.parent_page).filter("order >", self.order)[0]
+        except:
+            return None
+
+    def previous_sibling(self):
+        try:
+            return Page.all().filter("parent_page =", self.parent_page).filter("order <", self.order)[0]
+        except:
+            return None
+        
+    def children(self):
+        return Page.all().filter("parent_page =", self).order("order")
+
 
     def __repr__(self):
         return "<Page: %s>" % self.slug
@@ -76,3 +92,6 @@ class PluginPoint(db.Model):
 
     def __repr__(self):
         return self.name
+
+
+    

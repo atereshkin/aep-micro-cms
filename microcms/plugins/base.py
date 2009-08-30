@@ -20,7 +20,8 @@ class SimplePlugin(object):
 class RichPlugin(SimplePlugin):
     def options(self):
         return simplejson.dumps({ 'type' : 'wym',
-                                  'submit' : 'ok',
+                                  'submit' : 'OK',
+                                  'cancel' : 'Cancel',
                                   'wym' : { 'basePath' : '123',
                                             'loadSkin' : False,
                                             'updateSelector' : 'button'}})

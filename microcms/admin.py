@@ -21,14 +21,14 @@ def build_tree(root=None):
                             'attributes' : { 'class' : 'link',
                                              'href' : urlresolvers.reverse('admin_microcms_page_change', args=(root.id,))}},
                  }
-        children = Page.all().filter("parent_page =", root)
+        children = root.children()
         if children.count() > 0:
             ret['children'] = [build_tree(page) for page in children]
             ret['state'] = 'open'
         return ret
     
     else:
-        return [build_tree(page) for page in Page.all().filter("parent_page =", None)]
+        return [build_tree(page) for page in Page.all().filter("parent_page =", None).order("order")]
 
 class PageAdmin(admin.ModelAdmin):
     inlines = [PluginPointInline, ]
@@ -43,10 +43,25 @@ class PageAdmin(admin.ModelAdmin):
         logging.error(request.POST)
         page = get_object_or_404(Page, request.POST['page_id'])
         target = get_object_or_404(Page, request.POST['target_id'])
-        if request.POST['position'] == 'inside':
+        position = request.POST['position']
+        if position == 'inside':
             page.parent_page = target
-        else:
+        elif position == 'before':
+            prev = target.previous_sibling()
+            if prev:
+                page.order = (target.order + prev.order) / 2
+            else:
+                page.order = target.order / 2
             page.parent_page = target.parent_page
+        elif position == 'after':
+            next = target.next_sibling()
+            if next:
+                page.order = (target.order + next.order) / 2
+            else:
+                page.order = target.order + 1000
+            page.parent_page = target.parent_page
+        else:
+            raise ValueError("Incorrect position parameter")
         page.put()
         
         return HttpResponse('ok')
