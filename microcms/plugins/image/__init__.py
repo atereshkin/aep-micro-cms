@@ -4,7 +4,9 @@ from django.core.urlresolvers import reverse
 from microcms.plugins.base import SimplePlugin
 
 class ImagePlugin(SimplePlugin):
-
+    """
+    Allows inserting images into the page. Renders as <img> tag.
+    """
     def render(self):
         image_key = getattr(self.page, self.name, None)
         if image_key:
