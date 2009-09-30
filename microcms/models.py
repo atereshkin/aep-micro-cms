@@ -48,9 +48,13 @@ class Page(db.Expando):
 
 
 def update_plugin_points(sender, instance, **kwargs):
-    before = Page.get(instance.key())
-    #if before.template == instance.template:
-    #    return
+    created = not instance.is_saved()
+
+    if not created:
+        before = Page.get(instance.key())
+        if before.template == instance.template:
+           return
+
     from django.templatetags.cms_tags import EditableNode
     template = loader.get_template(instance.template.name)
     try:
