@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from google.appengine.ext import db
 from django.core.urlresolvers import reverse
-from django.db.models.signals import pre_save
+from django.db.models.signals import pre_save, post_save
 from django.template import loader, Context
 from django.conf import settings
 
@@ -47,20 +47,28 @@ class Page(db.Expando):
         return "<Page: %s>" % self.slug
 
 
-def update_plugin_points(sender, instance, **kwargs):
-    created = not instance.is_saved()
+def get_template(template_name):
+    ''' Returns django.template.Template instance with fully builded syntax
+        tree.
+    '''
 
-    if not created:
-        before = Page.get(instance.key())
-        if before.template == instance.template:
-           return
+    template = loader.get_template(template_name)
 
-    from django.templatetags.cms_tags import EditableNode
-    template = loader.get_template(instance.template.name)
+    # DO NOT DELETE
+    # Needed for django to build full syntax tree of template
     try:
         template.render(Context({}))
     except:
         pass
+
+    return template
+    
+
+def update_plugin_points(sender, instance, **kwargs):
+    from django.templatetags.cms_tags import EditableNode
+
+    template = get_template(instance.template.name)
+
     for node in walk(template):
         if isinstance(node, EditableNode):
             PluginPoint.get_or_insert(PluginPoint.keyname(instance, node.name),
@@ -68,7 +76,28 @@ def update_plugin_points(sender, instance, **kwargs):
                                       page=instance,
                                       name=node.name)
 
+def update_plugin_points_template(sender, instance, created, **kwargs):
+    ''' Updates plugin points of all the pages that use this particular
+        template.
+    '''
+    from django.templatetags.cms_tags import EditableNode
 
+    # doing nothing if template has just been created
+    if created:
+        return
+
+    template = get_template(instance.name)
+    pages = Page.all().filter('template =', instance)
+
+    for node in walk(template):
+        if isinstance(node, EditableNode):
+            for page in pages:
+                PluginPoint.get_or_insert(PluginPoint.keyname(page, node.name),
+                                          parent=page,
+                                          page=page,
+                                          name=node.name)
+
+    
 def walk(node):
     yield node
     if hasattr(node, 'nodelist'):
@@ -79,6 +108,7 @@ def walk(node):
         
 
 pre_save.connect(update_plugin_points, sender=Page)
+post_save.connect(update_plugin_points_template, sender=DbTemplate)
 
 class PluginPoint(db.Model):
     page        = db.ReferenceProperty(Page)
