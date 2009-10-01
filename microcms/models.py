@@ -7,17 +7,22 @@ from django.conf import settings
 
 from dbtemplates.models import DbTemplate
 
-class Page(db.Expando):
+class PageStorage(db.Expando):
+    ''' Storage for editable information. '''
+
+class Page(db.Model):
     """
     A page in CMS. All editable fragments are stored as
-    fields with respecitve names in this entity (hence the
-    Expando subclass)
+    fields with respecitve names in PageStorage instance
+    corresponding to each instance.
     """
     title       = db.StringProperty()
     slug        = db.StringProperty()
     template    = db.ReferenceProperty(DbTemplate)
     parent_page = db.SelfReferenceProperty(default=None)
     order       = db.FloatProperty(default=1000.0)
+
+    storage     = db.ReferenceProperty(PageStorage)
     
     def get_absolute_url(self):
         if self.parent_page:
@@ -46,7 +51,6 @@ class Page(db.Expando):
     def __repr__(self):
         return "<Page: %s>" % self.slug
 
-
 def get_template(template_name):
     ''' Returns django.template.Template instance with fully builded syntax
         tree.
@@ -62,7 +66,19 @@ def get_template(template_name):
         pass
 
     return template
-    
+
+def create_storage(sender, instance, **kwargs):
+    ''' Creates a storage instance for all created instances of Page class.
+        It's triggered on pre_save instead of post_save to avoid second
+        save action.
+    '''
+    created = not instance.is_saved()
+
+    if created and instance.storage is None:
+        storage = PageStorage()
+        storage.put()
+
+        instance.storage = storage
 
 def update_plugin_points(sender, instance, **kwargs):
     from django.templatetags.cms_tags import EditableNode
@@ -107,7 +123,8 @@ def walk(node):
         
         
 
-pre_save.connect(update_plugin_points, sender=Page)
+pre_save.connect(create_storage, sender=Page)                
+post_save.connect(update_plugin_points, sender=Page)
 post_save.connect(update_plugin_points_template, sender=DbTemplate)
 
 class PluginPoint(db.Model):

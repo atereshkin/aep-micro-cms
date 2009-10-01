@@ -16,8 +16,9 @@ def upload_image(request, page_key, plugin_name):
         img = Image()
         img.data = request.FILES['value'].read()
         img.put()
-        setattr(page, plugin_name, img.key())
+        setattr(page.storage, plugin_name, img.key())
         page.put()
+
     plugin = ImagePlugin(plugin_name, page)
     return HttpResponse(plugin.render())
 

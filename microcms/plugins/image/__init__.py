@@ -11,7 +11,7 @@ class ImagePlugin(SimplePlugin):
         """
         See SimplePlugin.render
         """
-        image_key = getattr(self.page, self.name, None)
+        image_key = getattr(self.page.storage, self.name, None)
         if image_key:
             return '<img src="%s" />' % reverse("cms_image",
                                                 args=(str(image_key),))

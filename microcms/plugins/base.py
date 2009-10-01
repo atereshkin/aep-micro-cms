@@ -13,7 +13,7 @@ class SimplePlugin(object):
         """
         Render the plugin to html
         """
-        return getattr(self.page, self.name, 'Edit me')
+        return getattr(self.page.storage, self.name, 'Edit me')
     
     def save_url(self):
         """
