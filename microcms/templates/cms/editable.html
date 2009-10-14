@@ -1,3 +1,5 @@
+{% if user.is_staff %}
+
 <{{ tag }} class="editable" id="{{ id }}">
  {{ plugin.render|safe }}
 </{{tag}}>
@@ -6,3 +8,7 @@ $(document).ready(function(){
     $('#{{ id }}').editable('{{ plugin.save_url }}', {{ plugin.options|safe }});
 });
 </script>
+
+{% else %}
+  {{ plugin.render|safe }}
+{% endif %}

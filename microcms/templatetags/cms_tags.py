@@ -30,7 +30,9 @@ class EditableNode(template.Node):
     def render(self, context):
         if not 'page' in context:
             return ''#render_to_string('cms/plugin.html')
+
         page = context['page']
+        user = context.get('user', None)
 
         pp = page.pluginpoint_set.filter('name =', self.name)[0]
         dot = pp.plugin_name.rindex('.')
@@ -39,9 +41,10 @@ class EditableNode(template.Node):
         plugin_class = getattr(mod, plugin_classname)
         plugin = plugin_class(self.name, page)
         return render_to_string('cms/editable.html',
-                                {'tag' : self.container_name,
-                                 'id' : self.name,
-                                 'plugin' : plugin})
+                                { 'tag'     : self.container_name,
+                                  'id'      : self.name,
+                                  'plugin'  : plugin,
+                                  'user'    : user })
         
     def __repr__(self):
         return "<EditableNode: %s>" % self.name
