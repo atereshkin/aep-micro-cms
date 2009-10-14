@@ -1,0 +1,10 @@
+{% if request.user.is_staff %}
+<script type="text/javascript" src="{{ MEDIA_URL }}backend_cms_media/jquery.wymeditor.js"></script>
+<script type="text/javascript" src="{{ MEDIA_URL }}backend_cms_media/wymeditor/lang/en.js"></script>
+<script type="text/javascript" src="{{ MEDIA_URL }}backend_cms_media/wymeditor/skins/default/skin.js"></script>
+
+<script type="text/javascript" src="{{ MEDIA_URL }}backend_cms_media/jquery.jeditable.mini.js"></script>
+<script type="text/javascript" src="{{ MEDIA_URL }}backend_cms_media/jquery.jeditable.wym.js"></script>
+<script type="text/javascript" src="{{ MEDIA_URL }}backend_cms_media/jquery.jeditable.ajaxupload.js"></script>
+<script type="text/javascript" src="{{ MEDIA_URL }}backend_cms_media/jquery.ajaxfileupload.js"></script>
+{% endif %}
